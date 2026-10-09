@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07090D">
+  <title>CodeCanvas — see your code run</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ───────────── TOP BAR ───────────── -->
+<header class="topbar">
+  <div class="tb-left">
+    <button class="icon-btn menu-btn" id="menuBtn" aria-label="Toggle explorer" data-tip="Explorer">☰</button>
+    <div class="brand">
+      <span class="brand-mark">&lt;&gt;</span>
+      <span class="brand-name">CodeCanvas</span>
+      <span class="badge">BETA</span>
+    </div>
+  </div>
+
+  <div class="tb-center">
+    <span class="status" id="status" data-state="idle"><i class="dot"></i><span id="statusText">Runtime ready</span></span>
+    <span class="lang">Python</span>
+  </div>
+
+  <div class="tb-right">
+    <button class="btn ghost" id="resetBtn" data-tip="Reset execution"><span class="ico">↻</span><span class="lbl">Reset</span></button>
+    <button class="btn ghost" id="stepBtn" data-tip="Execute one event"><span class="ico">→</span><span class="lbl">Step</span></button>
+    <button class="btn primary" id="runBtn" data-tip="Ctrl / ⌘ + Enter"><span class="ico" id="runIcon">▶</span><span class="lbl" id="runLabel">Run</span></button>
+  </div>
+</header>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="app" id="app">
+
+  <!-- ───────────── EXPLORER ───────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-section">
+      <div class="sb-title">EXPLORER</div>
+      <button class="file active" data-file="main.py"><span class="glyph">◆</span>main.py</button>
+      <button class="file" data-file="README.md"><span class="glyph">◇</span>README.md</button>
+    </div>
+    <div class="sb-section">
+      <div class="sb-title">EXAMPLES</div>
+      <div id="examples"></div>
+    </div>
+    <div class="sb-foot">Programming becomes easier<br>when you can see it.</div>
+  </aside>
+
+  <!-- ───────────── EDITOR + CONSOLE ───────────── -->
+  <section class="col-editor">
+    <div class="panel editor-panel">
+      <div class="panel-head">
+        <span class="file-tab"><span class="glyph" id="fileGlyph">◆</span><span id="fileName">main.py</span></span>
+        <span class="hint"><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></span>
+        <button class="collapse-btn" data-collapse aria-label="Collapse panel">⌄</button>
+      </div>
+      <div class="panel-body">
+        <div class="editor-body" id="editorBody">
+          <div class="bars-layer"><div id="barsInner">
+            <div class="bar cursor-line" id="curLine"></div>
+            <div class="bar exec-line" id="execLine"></div>
+          </div></div>
+          <div class="gutter"><div id="gutterInner"></div></div>
+          <div class="code-area">
+            <pre class="hl" id="hl" aria-hidden="true"><code id="hlCode"></code></pre>
+            <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Code editor"></textarea>
+          </div>
+        </div>
+        <div class="readme-view" id="readmeView" hidden></div>
+      </div>
+    </div>
+
+    <div class="panel console-panel">
+      <div class="panel-head">
+        <div class="tabs" id="consoleTabs">
+          <button class="tab active" data-tab="console">CONSOLE</button>
+          <button class="tab" data-tab="output">OUTPUT</button>
+          <button class="tab" data-tab="events">EVENTS</button>
+        </div>
+        <button class="collapse-btn" data-collapse aria-label="Collapse panel">⌄</button>
+      </div>
+      <div class="panel-body">
+        <div class="pane active" id="pane-console"></div>
+        <div class="pane" id="pane-output"></div>
+        <div class="pane" id="pane-events"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── EXECUTION CANVAS (hero) ───────────── -->
+  <section class="panel canvas-panel" id="canvasPanel">
+    <div class="panel-head">
+      <span class="panel-title">EXECUTION CANVAS</span>
+      <div class="speed" id="speed" role="group" aria-label="Playback speed">
+        <button data-speed="0.5" data-tip="Slow">0.5×</button>
+        <button data-speed="1" class="active" data-tip="Normal">1×</button>
+        <button data-speed="2" data-tip="Fast">2×</button>
+        <button data-speed="4" data-tip="Very fast">4×</button>
+      </div>
+      <button class="collapse-btn" data-collapse aria-label="Collapse panel">⌄</button>
+    </div>
+    <div class="panel-body canvas-body">
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="empty" id="empty">
+          <svg class="empty-mark" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+            <path d="M32 6 58 32 32 58 6 32Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M32 18 46 32 32 46 18 32Z" fill="rgba(89,227,255,.08)" stroke="currentColor" stroke-width="1" opacity=".7"/>
+            <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+          </svg>
+          <p class="empty-title">Run your code to see<br>how it executes visually.</p>
+          <p class="empty-sub">Every assignment, loop step and branch becomes a node.</p>
+          <button class="btn outline" id="emptyRun">Run Code</button>
+        </div>
+        <div class="errpanel" id="errPanel" hidden></div>
+        <div class="flow" id="flow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── STATE COLUMN ───────────── -->
+  <aside class="col-state">
+    <div class="panel" id="varsPanel">
+      <div class="panel-head">
+        <span class="panel-title">VARIABLES</span>
+        <span class="count" id="varCount">0</span>
+        <button class="collapse-btn" data-collapse aria-label="Collapse panel">⌄</button>
+      </div>
+      <div class="panel-body">
+        <div class="vars" id="vars"><p class="muted-note">Variables appear here as your program creates them.</p></div>
+      </div>
+    </div>
+
+    <div class="panel" id="execPanel">
+      <div class="panel-head">
+        <span class="panel-title">EXECUTION</span>
+        <button class="collapse-btn" data-collapse aria-label="Collapse panel">⌄</button>
+      </div>
+      <div class="panel-body">
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <span>step <b id="stepNow">0</b> / <b id="stepTotal">0</b></span>
+            <span id="pct">0%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+          <div class="runtime"><span>Runtime</span><b id="runtime">— ms</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel grow" id="eventsPanel">
+      <div class="panel-head">
+        <span class="panel-title">EVENT STREAM</span>
+        <button class="collapse-btn" data-collapse aria-label="Collapse panel">⌄</button>
+      </div>
+      <div class="panel-body">
+        <ul class="feed" id="feed"></ul>
+        <p class="muted-note" id="feedEmpty">Events stream in as each line executes.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

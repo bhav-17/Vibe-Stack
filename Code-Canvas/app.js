@@ -189,7 +189,7 @@ const PyInterp = (() => {
     not() { if (this.isName('not')) { this.p++; return { k: 'not', e: this.not() }; } return this.cmp(); }
     cmp() {
       const first = this.add(); const rest = [];
-      for (;;) {
+      for (; ;) {
         const t = this.peek(); let op = null;
         if (!t) break;
         if (t.t === 'op' && ['<', '>', '<=', '>=', '==', '!='].includes(t.v)) { op = t.v; this.p++; }
@@ -222,7 +222,7 @@ const PyInterp = (() => {
     }
     postfix() {
       let e = this.primary();
-      for (;;) {
+      for (; ;) {
         if (this.isOp('[')) {
           this.p++; const idx = this.or(); this.expect(']'); e = { k: 'index', base: e, idx };
         } else if (this.isOp('(')) {
@@ -332,7 +332,7 @@ const PyInterp = (() => {
     }
     if ((m = RE_IF.exec(t))) {
       const branches = []; let orelse = null; let h = i, mm = m;
-      for (;;) {
+      for (; ;) {
         const b = block(h);
         branches.push({ line: ls[h].n, text: ls[h].text.replace(/:$/, ''), src: mm[1], cond: parseExpr(mm[1], ls[h].n), body: b.stmts });
         h = b.i;
@@ -589,7 +589,7 @@ const PyInterp = (() => {
         }
 
         case 'while': {
-          for (;;) {
+          for (; ;) {
             const v = truthy(evalNode(s.cond, env, s.line));
             emit({ line: s.line, type: 'condition', label: 'LOOP CHECK', main: s.src, sub: v ? `${s.text}  ·  keep looping` : `${s.text}  ·  exit loop`, calc: substitute(s.src, env), badge: v, changes: {} });
             if (!v) return;
@@ -925,11 +925,11 @@ function initApp() {
   const statusEl = $('#status'), statusText = $('#statusText');
   const runBtn = $('#runBtn'), runIcon = $('#runIcon'), runLabel = $('#runLabel');
   const UI = {
-    idle:    { s: 'idle',    text: 'Runtime ready',      icon: '▶', label: 'Run',          cls: '',        tip: 'Ctrl / ⌘ + Enter' },
-    running: { s: 'running', text: 'Executing…',         icon: '●', label: 'Running...',   cls: 'running', tip: 'Click to pause' },
-    paused:  { s: 'paused',  text: 'Paused',             icon: '▶', label: 'Resume',       cls: 'paused',  tip: 'Resume playback' },
-    done:    { s: 'idle',    text: 'Execution complete', icon: '✓', label: 'Completed',    cls: 'done',    tip: 'Run again' },
-    error:   { s: 'error',   text: 'Error',              icon: '⚠', label: 'Failed',       cls: 'error',   tip: 'Fix the code, then run again' },
+    idle: { s: 'idle', text: 'Runtime ready', icon: '▶', label: 'Run', cls: '', tip: 'Ctrl / ⌘ + Enter' },
+    running: { s: 'running', text: 'Executing…', icon: '●', label: 'Running...', cls: 'running', tip: 'Click to pause' },
+    paused: { s: 'paused', text: 'Paused', icon: '▶', label: 'Resume', cls: 'paused', tip: 'Resume playback' },
+    done: { s: 'idle', text: 'Execution complete', icon: '✓', label: 'Completed', cls: 'done', tip: 'Run again' },
+    error: { s: 'error', text: 'Error', icon: '⚠', label: 'Failed', cls: 'error', tip: 'Fix the code, then run again' },
   };
 
   const Engine = {
